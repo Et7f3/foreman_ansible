@@ -30,8 +30,8 @@ template_inputs:
 provider_type: Ansible
 kind: job_template
 model: JobTemplate
-%>
-
+-%>
+<% package_names = input('name') %>
 # For Windows targets use the win_package module instead.
 ---
 - hosts: all
@@ -41,7 +41,20 @@ model: JobTemplate
   <%- end -%>
   tasks:
     - package:
-        name: <%= input('name') %>
+<% if package_names.kind_of?(String) -%>
+        name: <%= package_names %>
+<% elsif package_names.kind_of?(Array) -%>
+<% if package_names.empty? -%>
+        name: []
+<% else -%>
+        name:
+<% package_names.each do |package_name| -%>
+          - <%= package_name %>
+<% end -%>
+<% end -%>
+<% else -%>
+<% render_error("name should be String or Array") -%>
+<% end -%>
         state: <%= input('state') %>
   <%- if input('post_script').present? -%>
   post_tasks:
